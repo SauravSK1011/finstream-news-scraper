@@ -7,21 +7,16 @@ This module handles fetching and filtering financial news articles from various 
 import requests
 from bs4 import BeautifulSoup
 import logging
+from site_discovery import discover_top_finance_sites
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# List of news sources to scrape
-SOURCES = [
-    "https://finance.yahoo.com/news/",
-    "https://www.cnbc.com/finance/",
-    "https://www.marketwatch.com/latest-news"
-]
 
 # Keywords to filter headlines by
 KEYWORDS = [
-    "stock", "market", "invest", "trading", "nasdaq", "dow", "s&p", "finance",
+    "stock", "market", "invest", "trading", "nasdaq", "dow", "s&p", "finance", "Trump", "Gold", "Crude Oil", "Business", "BSE", "NSE", "Nifty", "Sensex",
     "economy", "fed", "interest rate", "inflation", "earnings", "dividend"
 ]
 
@@ -111,19 +106,28 @@ def filter_by_keywords(articles, keywords=None):
 
 def get_financial_news():
     """
-    Main function to fetch and filter financial news from all sources.
-    
-    Returns:
-        list: List of filtered articles from all sources
+    Fetch and filter financial news from discovered sources.
     """
+    discovered_domains = discover_top_finance_sites()
+    if not discovered_domains:
+        logger.warning("Falling back to default sources.")
+        discovered_domains = [
+            "finance.yahoo.com",
+            "www.cnbc.com",
+            "www.marketwatch.com",
+            "www.bloomberg.com",
+            "www.reuters.com",
+            "www.investing.com"
+        ]
+        
     all_articles = []
-    
-    for source in SOURCES:
-        articles = fetch_articles(source)
+
+    for domain in discovered_domains:
+        url = f"https://{domain}"
+        articles = fetch_articles(url)
         all_articles.extend(articles)
-    
-    filtered_articles = filter_by_keywords(all_articles)
-    return filtered_articles
+
+    return filter_by_keywords(all_articles)
 
 if __name__ == "__main__":
     # Test the scraper
