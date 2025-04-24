@@ -7,17 +7,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Define known reliable finance news domains
+VALID_FINANCE_DOMAINS = {
+    "finance.yahoo.com",
+    "www.cnbc.com",
+    "www.marketwatch.com",
+    "www.bloomberg.com",
+    "www.reuters.com",
+    "www.investing.com",
+    "www.ft.com",
+    "www.wsj.com",
+}
+
 def discover_top_finance_sites(query="finance news", max_sites=3):
-    """
-    Scrape Bing News to discover top finance news domains.
-
-    Args:
-        query (str): Search query.
-        max_sites (int): Max number of unique domains to return.
-
-    Returns:
-        list: List of unique finance news domains.
-    """
     try:
         logger.info("Discovering top finance news sites")
         headers = {"User-Agent": "Mozilla/5.0"}
@@ -30,12 +32,13 @@ def discover_top_finance_sites(query="finance news", max_sites=3):
         for link in links:
             href = link.get('href')
             domain = urlparse(href).netloc
-            if domain and "bing" not in domain and "microsoft" not in domain:
+            # Only include if it's one of the known good domains
+            if domain in VALID_FINANCE_DOMAINS and domain not in domains:
                 domains.append(domain)
 
-        unique_domains = list(dict.fromkeys(domains))
-        logger.info(f"Discovered sites: {unique_domains[:max_sites]}")
-        return unique_domains[:max_sites]
+        logger.info(f"Discovered sites: {domains[:max_sites]}")
+        return domains[:max_sites]
+
     except Exception as e:
         logger.error(f"Error discovering sites: {e}")
         return []
